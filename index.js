@@ -15,10 +15,12 @@ app.get('/download/:videoId', async (req, res) => {
     var url = `https://www.youtube.com/watch?v=${req.params.videoId}`;
 
     if (!url) {
+        console.error('URL is missing');
         return res.status(400).send('URL is required');
     }
 
     try {
+        console.log(`Attempting to download video: ${url}`);
         const info = await ytdl.getInfo(url);
         const title = info.videoDetails.title.replace(/[^\w\s]/gi, '');
         
@@ -36,7 +38,7 @@ app.get('/download/:videoId', async (req, res) => {
         stream.on('error', (err) => {
             console.error('Error in ytdl stream:', err);
             if (!res.headersSent) {
-                res.status(500).send('Error streaming audio');
+                res.status(500).send(`Error streaming audio: ${err.message}`);
             }
         });
 
@@ -50,9 +52,11 @@ app.get('/download/:videoId', async (req, res) => {
     } catch (err) {
         console.error('Error in download route:', err);
         if (!res.headersSent) {
-            res.status(500).send('An error occurred');
+            res.status(500).send(`An error occurred: ${err.message}`);
         }
     }
 });
 
-app.listen(3000 || process.env.PORT, () => console.log('Server running on port 3000'));
+// Change the port to use environment variable first
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
