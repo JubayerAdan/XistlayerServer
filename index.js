@@ -1,15 +1,12 @@
 const express = require('express');
 const ytdl = require("@distube/ytdl-core");
-
+const cors = require('cors');
 
 const app = express();
-const cors = require('cors');
 app.use(cors());
 
-
-
-
-
+// Add this cookie string - you'll need to replace it with your own
+const YOUTUBE_COOKIE = 'SID=g.a000oAhGG1NWgBa6_mdOyFOt9IPvY2zXIcuJdarxrnpDiHQ-nMpfOdyLQB_xgYmbPcnhPQ9pcgACgYKAZESARMSFQHGX2Mi8gHsk3RqDOdmMkbK9Hx61RoVAUF8yKoFmlpppsJ-TYqzyECI-VqA0076;HSID=AldQ4I6J2mZIRG2ag;SSID=AM1AaRFojsY3nw7sT;APISID=Z-qyuIpV17Gs_yJf/ACQL0REh_sf_s8Tx6;SAPISID=uectqJCl7u_leL5e/AYUtBnWvXNgiODU9O';
 
 app.get('/download/:videoId', async (req, res) => {
     var url = `https://www.youtube.com/watch?v=${req.params.videoId}`;
@@ -21,7 +18,13 @@ app.get('/download/:videoId', async (req, res) => {
 
     try {
         console.log(`Attempting to download video: ${url}`);
-        const info = await ytdl.getInfo(url);
+        const info = await ytdl.getInfo(url, {
+            requestOptions: {
+                headers: {
+                    cookie: YOUTUBE_COOKIE,
+                }
+            }
+        });
         const title = info.videoDetails.title.replace(/[^\w\s]/gi, '');
         
         // Set appropriate headers for audio streaming
@@ -32,7 +35,12 @@ app.get('/download/:videoId', async (req, res) => {
         const stream = ytdl(url, {
             filter: 'audioonly',
             quality: 'highestaudio',
-            format: 'mp3'
+            format: 'mp3',
+            requestOptions: {
+                headers: {
+                    cookie: YOUTUBE_COOKIE,
+                }
+            }
         });
 
         stream.on('error', (err) => {
